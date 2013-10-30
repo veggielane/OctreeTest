@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Drawing;
 using System.Text;
 using System.Threading.Tasks;
 using Veg.Maths;
+using System.Linq;
 
 namespace OctreeTest
 {
@@ -9,21 +11,15 @@ namespace OctreeTest
     {
         static void Main(string[] args)
         {
-            var tree = new Octree<Voxel>(Vect3.Zero, 256.0);
-            tree.Split();
-            tree[0].Split();
-            tree[0][0].Split();
-            tree[0][0][0].Split();
-            tree[0][0][0][0].Split();
-            tree[0][0][0][0][0].Split();
-            tree[0][0][0][0][0][0].Split();
-            tree[0][0][0][0][0][0][0].Split();
-
-            using (var win = new Window(tree))
+            using (var win = new Window())
             {
                 win.Run();
                 Console.ReadLine();
             }
         }
+
+ 
     }
+
+
 }

@@ -35,6 +35,8 @@ namespace OctreeTest
         public NodeState State { get; private set; }
         public OctreeNode<T>[] Children { get; private set; }
 
+        public AABB AABB { get { return new AABB(Center + new Vect3(-Size / 2.0, -Size / 2.0, -Size / 2.0), Center + new Vect3(Size / 2.0, Size / 2.0, Size / 2.0)); } }
+
         public OctreeNode(Vect3 center, Double size, int level)
         {
             Center = center;
@@ -69,6 +71,19 @@ namespace OctreeTest
                 //bottom-front-left
                 new OctreeNode<T>(Center + new Vect3(+half, -half, -half),newSize,Level + 1)
             };
+            State = NodeState.Partial;
+        }
+
+        public void Fill()
+        {
+            Children = null;
+            State = NodeState.Filled;
+        }
+
+        public void Clear()
+        {
+            Children = null;
+            State = NodeState.Empty;
         }
 
         public OctreeNode<T> this[int index]
@@ -96,4 +111,7 @@ namespace OctreeTest
     }
 
     public enum NodeState:byte { Empty = 0, Filled = 1, Partial = 2 }
+
+
+
 }

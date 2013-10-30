@@ -37,11 +37,11 @@ namespace OctreeTest
             Far = 1000f;
             Target = Vect3.Zero;
             Up = Vect3.UnitY;
-            Eye = new Vect3(0, 0, 500);
+            Eye = new Vect3(0, 0, 20);
             Model = Mat4.Identity;
             View = Mat4.LookAt(Eye, Target, Up);
             Projection = Mat4.Identity;
-            Scale = 1;
+            Scale = 25;
         }
         public override void Update(double delta)
         {
