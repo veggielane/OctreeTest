@@ -7,41 +7,106 @@ using Veg.Maths;
 
 namespace OctreeTest
 {
-    public class AABB
+        public class AABB
     {
-        private readonly Vect3 _start;
-        private readonly Vect3 _end;
+        public Vect3 Min { get; private set; }
+        public Vect3 Max { get; private set; }
+        public Vect3 Center{ get; private set; } 
 
-        public AABB(Vect3 start, Vect3 end)
+       public Vect3 HalfSize { get; private set; }
+
+        public AABB(Vect3 min, Vect3 max)
         {
-            _start = start;
-            _end = end;
+            Min = min;
+            Max = max;
+            Center = (Min + Max)*0.5;
+            HalfSize = new Vect3((max.X - min.X) / 2.0, (max.X - min.X) / 2.0, (max.X - min.X) / 2.0);
         }
 
-        public bool Intersects(Triangle triangle)
+        public AABB(Vect3 center, double size)
         {
-            //this is temp
-            return
-                triangle.P1.X > _start.X && triangle.P1.X < _end.X &&
-                triangle.P1.Y > _start.Y && triangle.P1.Y < _end.Y &&
-                triangle.P1.Z > _start.Z && triangle.P1.Z < _end.Z &&
+            Center = center;
+            Min = center - new Vect3(size / 2.0, size / 2.0, size / 2.0);
+            Max = center + new Vect3(size / 2.0, size / 2.0, size / 2.0);
 
-                triangle.P2.X > _start.X && triangle.P2.X < _end.X &&
-                triangle.P2.Y > _start.Y && triangle.P2.Y < _end.Y &&
-                triangle.P2.Z > _start.Z && triangle.P2.Z < _end.Z &&
-
-                triangle.P3.X > _start.X && triangle.P3.X < _end.X &&
-                triangle.P3.Y > _start.Y && triangle.P3.Y < _end.Y &&
-                triangle.P3.Z > _start.Z && triangle.P3.Z < _end.Z;
+            HalfSize = new Vect3(size/2.0,size/2.0,size/2.0);
         }
+    }
+    //public class AABB
+    //{
 
+
+    //    public Vect3 Start { get; private set; }
+    //    public Vect3 End { get; private set; }
+
+    //    public Vect3 Center { get { return (Start + End)*0.5; } }
+
+    //    
+
+    //    public AABB(Vect3 start, Vect3 end)
+    //    {
+    //        Start = start;
+    //        End = end;
+    //    }
+
+
+
+    //    //public IntersectResult Intersects(Sphere s)
+    //    //{
+    //    //    double sqDist = 0.0;
+    //    //    int inside = 0;
+    //    //    if (s.Center.X < _start.X)
+    //    //        sqDist += (_start.X - s.Center.X) * (_start.X - s.Center.X);
+    //    //    else if (s.Center.X > _end.X)
+    //    //        sqDist += (s.Center.X - _end.X) * (s.Center.X - _end.X);
+    //    //    else if (s.Center.X >= _start.X + s.Radius && s.Center.X <= _end.X - s.Radius)
+    //    //        inside++;
+
+    //    //    if (s.Center.Y < _start.Y)
+    //    //        sqDist += (_start.Y - s.Center.Y) * (_start.Y - s.Center.Y);
+    //    //    else if (s.Center.Y > _end.Y)
+    //    //        sqDist += (s.Center.Y - _end.Y) * (s.Center.Y - _end.Y);
+    //    //    else if (s.Center.Y >= _start.Y + s.Radius && s.Center.Y <= _end.Y - s.Radius)
+    //    //        inside++;
+
+    //    //    if (s.Center.Z < _start.Z)
+    //    //        sqDist += (_start.Z - s.Center.Z) * (_start.Z - s.Center.Z);
+    //    //    else if (s.Center.Z > _end.Z)
+    //    //        sqDist += (s.Center.Z - _end.Z) * (s.Center.Z - _end.Z);
+    //    //    else if (s.Center.Z >= _start.Z + s.Radius && s.Center.Z <= _end.Z - s.Radius)
+    //    //        inside++;
+
+    //    //    if(inside == 3) return IntersectResult.False;
+
+    //    //    if(sqDist > s.Radius * s.Radius) return IntersectResult.True;
+
+    //    //    return IntersectResult.Partial;
+    //    //}
+
+
+    //    //public bool Intersects(Triangle triangle)
+    //    //{
+
+    //    //    //this is temp
+
+    //    //}
+
+
+
+    //}
+
+
+    public class Triangle
+    {
+        public Vect3 P1 { get; set; }
+        public Vect3 P2 { get; set; }
+        public Vect3 P3 { get; set; }
+        public Vect3 Normal { get; set; }
     }
 
-    public struct Triangle
+    public class Sphere
     {
-        public Vect3 P1;
-        public Vect3 P2;
-        public Vect3 P3;
-        public Vect3 Normal;
+        public Vect3 Center { get; set; }
+        public Double Radius { get; set; }
     }
 }

@@ -94,6 +94,37 @@ namespace OctreeTest
             }
         }
 
+
+        //public void Test(Func<OctreeNode<T>, IntersectResult> func, int maxLevel)
+        //{
+        //    if (Level >= maxLevel) return;
+
+        //    switch (func(this))
+        //    {
+        //        case IntersectResult.Outside:
+        //            Clear();
+        //            break;
+        //        case IntersectResult.Inside:
+        //            Fill();
+        //            break;
+        //        case IntersectResult.Partial:
+        //            if (Children == null)
+        //            {
+        //                Split();
+        //            }
+        //            if (Children != null)
+        //            {
+        //                foreach (var node in Children)
+        //                {
+        //                    node.Test(func, maxLevel);
+        //                }
+        //            }
+        //            break;
+        //        default:
+        //            throw new ArgumentOutOfRangeException();
+        //    }
+        //}
+
         public override string ToString()
         {
             var sb = new StringBuilder();
@@ -109,6 +140,7 @@ namespace OctreeTest
             return sb.ToString();
         }
     }
+
 
     public enum NodeState:byte { Empty = 0, Filled = 1, Partial = 2 }
 

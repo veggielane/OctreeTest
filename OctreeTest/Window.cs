@@ -5,7 +5,6 @@ using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Input;
 using Veg.Maths;
 using Veg.OpenTK;
 using Veg.OpenTK.Buffers;
@@ -24,7 +23,7 @@ namespace OctreeTest
         private CameraUBO _ubo;
         private readonly ICamera _camera;
         STL stl;
-        private int maxLevel = 15;
+        private int maxLevel = 8;
 
         public Window()
             : base(1280, 720, new GraphicsMode(32, 0, 0, 4), "OpenCAD")
@@ -49,8 +48,12 @@ namespace OctreeTest
 
             _tree = new Octree<Voxel>(Vect3.Zero, 16.0);
             //_tree.Split();
-            
 
+            var sphere = new Sphere() {Center = Vect3.Zero, Radius = 8};
+            //_tree.Test(n =>n.AABB.Intersects(sphere),2);
+
+
+            //create from stl
             foreach (var tri in stl.Elements)
             {
                 Intersect(_tree, tri);
@@ -76,7 +79,7 @@ namespace OctreeTest
         void Intersect(OctreeNode<Voxel> node, Triangle tri)
         {
             if(node.Level > maxLevel) return;
-            if (node.AABB.Intersects(tri))
+            if (tri.Intersects(node.AABB))
             {
                 if (node.Level == maxLevel)
                 {
@@ -195,7 +198,7 @@ namespace OctreeTest
             var green = new Color4(Color.PaleVioletRed).ToVector4();
             foreach (var node in nodes)
             {
-                var s = node.Size / 2.0 - 0.01;
+                var s = node.Size/2.0;// -0.01;
                 //+x
                 yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, s, s)).ToVector3() };
                 yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, -s, s)).ToVector3() };
