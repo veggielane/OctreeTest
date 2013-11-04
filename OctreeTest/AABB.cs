@@ -7,31 +7,7 @@ using Veg.Maths;
 
 namespace OctreeTest
 {
-        public class AABB
-    {
-        public Vect3 Min { get; private set; }
-        public Vect3 Max { get; private set; }
-        public Vect3 Center{ get; private set; } 
 
-       public Vect3 HalfSize { get; private set; }
-
-        public AABB(Vect3 min, Vect3 max)
-        {
-            Min = min;
-            Max = max;
-            Center = (Min + Max)*0.5;
-            HalfSize = new Vect3((max.X - min.X) / 2.0, (max.X - min.X) / 2.0, (max.X - min.X) / 2.0);
-        }
-
-        public AABB(Vect3 center, double size)
-        {
-            Center = center;
-            Min = center - new Vect3(size / 2.0, size / 2.0, size / 2.0);
-            Max = center + new Vect3(size / 2.0, size / 2.0, size / 2.0);
-
-            HalfSize = new Vect3(size/2.0,size/2.0,size/2.0);
-        }
-    }
     //public class AABB
     //{
 
@@ -96,17 +72,5 @@ namespace OctreeTest
     //}
 
 
-    public class Triangle
-    {
-        public Vect3 P1 { get; set; }
-        public Vect3 P2 { get; set; }
-        public Vect3 P3 { get; set; }
-        public Vect3 Normal { get; set; }
-    }
 
-    public class Sphere
-    {
-        public Vect3 Center { get; set; }
-        public Double Radius { get; set; }
-    }
 }

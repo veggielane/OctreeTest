@@ -6,8 +6,10 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using Veg.Maths;
+using Veg.Maths.Geometry;
 using Veg.OpenTK;
 using Veg.OpenTK.Buffers;
+using Veg.OpenTK.Camera;
 using Veg.OpenTK.Shaders;
 using Veg.OpenTK.Vertices;
 
@@ -23,35 +25,16 @@ namespace OctreeTest
         private CameraUBO _ubo;
         private readonly ICamera _camera;
         STL stl;
-        private int maxLevel = 8;
+        private int maxLevel = 7;
 
         public Window()
             : base(1280, 720, new GraphicsMode(32, 0, 0, 4), "OpenCAD")
         {
             
             stl = new STL("Models/elephant.stl", Color.Green, STLType.Binary);
-
-
-            //var max = stl.Elements.Select(e=>e.P1,X)
-
-
-            ;
-            //var x =
-            //    stl.Elements.Select(e => e.P1.X)
-            //       .Concat(stl.Elements.Select(e => e.P2.X))
-            //       .Concat(stl.Elements.Select(e => e.P3.X)).ToList();
-            //var xmax = x.Max();
-            //var xmin = x.Min();
-            //var x = stl.Elements.Max(e => e.P1.X);
-
-
-
             _tree = new Octree<Voxel>(Vect3.Zero, 16.0);
-            //_tree.Split();
 
             var sphere = new Sphere() {Center = Vect3.Zero, Radius = 8};
-            //_tree.Test(n =>n.AABB.Intersects(sphere),2);
-
 
             //create from stl
             foreach (var tri in stl.Elements)
@@ -63,10 +46,6 @@ namespace OctreeTest
             VSync = VSyncMode.On;
 
             _camera = new OrthographicCamera();
-
-
-
-
             Mouse.WheelChanged += (sender, args) =>
                 {
                     _camera.View = _camera.View * Mat4.Translate(0, 0, args.DeltaPrecise * -10.0);
@@ -104,7 +83,7 @@ namespace OctreeTest
         protected override void OnLoad(EventArgs e)
         {
             GL.Enable(EnableCap.Texture2D);
-            //GL.Enable(EnableCap.CullFace);
+            GL.Enable(EnableCap.CullFace);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
@@ -112,9 +91,6 @@ namespace OctreeTest
 
             _ubo = new CameraUBO();
             _shader = new BasicShaderProgram(_ubo);
-   
-            GL.PointSize(10);
-           // GL.LineWidth(3);
 
             _vao = new VAO(_shader, new VBO(new List<Vertex>(FetchData(_tree))) { BeginMode = BeginMode.Quads });
 
@@ -195,45 +171,62 @@ namespace OctreeTest
 
         private IEnumerable<Vertex> FetchDataSolid(IEnumerable<OctreeNode<Voxel>> nodes)
         {
-            var green = new Color4(Color.PaleVioletRed).ToVector4();
+
             foreach (var node in nodes)
             {
                 var s = node.Size/2.0;// -0.01;
                 //+x
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, -s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, -s, -s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleVioletRed).ToVector4(), Position = (node.Center + new Vect3(s, s, s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleVioletRed).ToVector4(), Position = (node.Center + new Vect3(s, -s, s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleVioletRed).ToVector4(), Position = (node.Center + new Vect3(s, -s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleVioletRed).ToVector4(), Position = (node.Center + new Vect3(s, s, -s)).ToVector3() };
                 //-x
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, -s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, -s, -s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleGreen).ToVector4(), Position = (node.Center + new Vect3(-s, s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleGreen).ToVector4(), Position = (node.Center + new Vect3(-s, -s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleGreen).ToVector4(), Position = (node.Center + new Vect3(-s, -s, s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleGreen).ToVector4(), Position = (node.Center + new Vect3(-s, s, s)).ToVector3() };
                 //+y
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, s, -s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, s, -s)).ToVector3() };
-                //-y
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, -s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, -s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, -s, -s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, -s, -s)).ToVector3() };
-                //+z
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, -s, s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, -s, s)).ToVector3() };
-                //-z
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, s, -s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, s, -s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(-s, -s, -s)).ToVector3() };
-                yield return new Vertex { Colour = green, Position = (node.Center + new Vect3(s, -s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleTurquoise).ToVector4(), Position = (node.Center + new Vect3(s, s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleTurquoise).ToVector4(), Position = (node.Center + new Vect3(-s, s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleTurquoise).ToVector4(), Position = (node.Center + new Vect3(-s, s, s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleTurquoise).ToVector4(), Position = (node.Center + new Vect3(s, s, s)).ToVector3() };
+                //-y                              
+                yield return new Vertex { Colour = new Color4(Color.PaleGoldenrod).ToVector4(), Position = (node.Center + new Vect3(s, -s, s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleGoldenrod).ToVector4(), Position = (node.Center + new Vect3(-s, -s, s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleGoldenrod).ToVector4(), Position = (node.Center + new Vect3(-s, -s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.PaleGoldenrod).ToVector4(), Position = (node.Center + new Vect3(s, -s, -s)).ToVector3() };
+                //+z                               
+                yield return new Vertex { Colour = new Color4(Color.NavajoWhite).ToVector4(), Position = (node.Center + new Vect3(s, s, s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.NavajoWhite).ToVector4(), Position = (node.Center + new Vect3(-s, s, s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.NavajoWhite).ToVector4(), Position = (node.Center + new Vect3(-s, -s, s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.NavajoWhite).ToVector4(), Position = (node.Center + new Vect3(s, -s, s)).ToVector3() };
+                //-z                               
+                yield return new Vertex { Colour = new Color4(Color.Silver).ToVector4(), Position = (node.Center + new Vect3(s, -s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.Silver).ToVector4(), Position = (node.Center + new Vect3(-s, -s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.Silver).ToVector4(), Position = (node.Center + new Vect3(-s, s, -s)).ToVector3() };
+                yield return new Vertex { Colour = new Color4(Color.Silver).ToVector4(), Position = (node.Center + new Vect3(s, s, -s)).ToVector3() };
+
+
+
             }
 
 
         }
 
+        public Bitmap GrabScreenshot()
+        {
+            if (GraphicsContext.CurrentContext == null)
+                throw new GraphicsContextMissingException();
+
+            Bitmap bmp = new Bitmap(this.ClientSize.Width, this.ClientSize.Height);
+            System.Drawing.Imaging.BitmapData data =
+                bmp.LockBits(this.ClientRectangle, System.Drawing.Imaging.ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
+            GL.ReadPixels(0, 0, this.ClientSize.Width, this.ClientSize.Height, PixelFormat.Bgr, PixelType.UnsignedByte, data.Scan0);
+            bmp.UnlockBits(data);
+
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            return bmp;
+        }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
@@ -258,6 +251,7 @@ namespace OctreeTest
             //_vao2.Render();
             _vaoFilled.Render();
             SwapBuffers();
+            //GrabScreenshot().Save("test.png");
             ErrorCode err = GL.GetError();
             if (err != ErrorCode.NoError)
                 Console.WriteLine("Error at Swapbuffers: " + err.ToString());

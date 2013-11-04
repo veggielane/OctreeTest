@@ -1,5 +1,6 @@
 ﻿using System;
 using Veg.Maths;
+using Veg.Maths.Geometry;
 
 namespace OctreeTest
 {
