@@ -1,10 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading.Tasks;
 using Veg.Maths;
 using Veg.Maths.Geometry;
 
 namespace OctreeTest
 {
+    [Serializable]
     public class Octree<T>: OctreeNode<T> where T : IOctVoxel
     {
         public Octree(Vect3 center, Double size)
@@ -13,7 +19,7 @@ namespace OctreeTest
 
         }
     }
-
+    [Serializable]
     public class Voxel:IOctVoxel
     {
         
@@ -23,9 +29,8 @@ namespace OctreeTest
     {
         
     }
-
-    public class OctreeNode<T>
-        where T : IOctVoxel
+    [Serializable]
+    public class OctreeNode<T> : IOperations<OctreeNode<T>> where T : IOctVoxel
     {
         
 
@@ -47,6 +52,16 @@ namespace OctreeTest
             State = NodeState.Empty;
             Children = null;
         }
+
+        public OctreeNode(Vect3 center, Double size, int level, OctreeNode<T>[] children)
+        {
+            Center = center;
+            Size = size;
+            Level = level;
+            State = NodeState.Partial;
+            Children = children;
+        }
+
 
         public void Split()
         {
@@ -139,6 +154,158 @@ namespace OctreeTest
             }
             sb.AppendLine("]");
             return sb.ToString();
+        }
+
+        public OctreeNode<T> Copy()
+        {
+            using (var ms = new MemoryStream())
+            {
+                var formatter = new BinaryFormatter();
+                formatter.Serialize(ms, this);
+                ms.Position = 0;
+                return (OctreeNode<T>)formatter.Deserialize(ms);
+            }
+        }
+
+        private OctreeNode<T> Copy(OctreeNode<T> node)
+        {
+            return new OctreeNode<T>(node.Center,node.Size,node.Level)
+                {
+                    State = node.State,
+                    Children = CopyChildren(node)
+                };
+        }
+        private OctreeNode<T>[] CopyChildren(OctreeNode<T> node)
+        {
+            return Children.Select(octreeNode => Copy(octreeNode)).ToArray();
+        }
+
+
+        //public void Test(Func<OctreeNode<T>, bool> func, int maxLevel)
+        //{
+        //    throw new NotImplementedException();
+        //    if (Level > maxLevel) return;
+
+        //    if (func(this))
+        //    {
+        //        if (Level == maxLevel)
+        //        {
+        //            Fill();
+        //        }
+        //        else
+        //        {
+        //            if (Children == null)
+        //            {
+        //                Split();
+        //            }
+        //            Parallel.ForEach(Children, child => Test(func, maxLevel));
+        //        }
+        //    }
+        //}
+
+
+
+        public OctreeNode<T> Union( OctreeNode<T> b)
+        {
+
+            return Test(this,b);
+        }
+
+        public OctreeNode<T> Subtract( OctreeNode<T> b)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OctreeNode<T> Intersection( OctreeNode<T> b)
+        {
+            throw new NotImplementedException();
+        }
+
+        public OctreeNode<T> Invert()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        private static OctreeNode<T> Test(OctreeNode<T> nodea, OctreeNode<T> nodeb)
+        {
+
+            if (nodea.State == NodeState.Empty && nodeb.State == NodeState.Empty)
+            {
+                return new OctreeNode<T>(nodea.Center, nodea.Size, nodea.Level);
+            }
+
+            if (
+                (nodea.State == NodeState.Filled && nodeb.State == NodeState.Filled) 
+                || (nodea.State == NodeState.Filled && nodeb.State == NodeState.Empty)
+                || (nodea.State == NodeState.Empty && nodeb.State == NodeState.Filled)
+                || (nodea.State == NodeState.Partial && nodeb.State == NodeState.Filled)
+                || (nodea.State == NodeState.Filled && nodeb.State == NodeState.Partial)
+                )
+            {
+                var n = new OctreeNode<T>(nodea.Center, nodea.Size, nodea.Level);
+                n.Fill();
+                return n;
+            }
+            if ((nodea.State == NodeState.Partial && nodeb.State == NodeState.Partial) && nodea.Children != null && nodeb.Children != null)
+            {
+                return new OctreeNode<T>(nodea.Center,nodea.Size,nodea.Level, nodea.Children.Zip(nodeb.Children, Test).ToArray());
+            }
+            if (nodea.State == NodeState.Partial && nodeb.State == NodeState.Empty)
+            {
+                return nodea;
+            }
+            if (nodea.State == NodeState.Empty && nodeb.State == NodeState.Partial)
+            {
+                return nodeb;
+            }
+            throw new Exception();
+
+
+
+
+
+            //if (nodea.Children != null)
+            //{
+            //    var changed = false;
+            //    var tempchildren = nodea.Children.Select(n =>
+            //        {
+            //            var result = Test(n, nodeb);
+            //            if (result != n)
+            //                changed = true;
+
+            //            return result;
+            //        });
+
+            //    if(changed)
+            //        return new OctreeNode<T>(nodea.Center, nodea.Size, nodea.Level, tempchildren);
+
+            //}
+
+
+            //return nodea;
+
+            //if (node.Level > maxLevel) return;
+
+            //var result = triangles.Where(t => t.Intersects(node.AABB)).ToList();
+            //if (result.Any())
+            //{
+            //    if (node.Level == maxLevel)
+            //    {
+            //        node.Fill();
+            //    }
+            //    else
+            //    {
+
+            //        if (node.Children == null)
+            //        {
+            //            node.Split();
+            //        }
+            //        Parallel.ForEach(node.Children, child => Test(child, result));
+            //    }
+
+            //}
+
         }
     }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
@@ -15,9 +16,10 @@ using Veg.OpenTK.Vertices;
 
 namespace OctreeTest
 {
+    public enum IntersectResult{Outside,Inside,Partial};
     public class Window : GameWindow
     {
-        private readonly Octree<Voxel> _tree;
+        private readonly OctreeNode<Voxel> _tree;
         private IShaderProgram _shader;
         private VAO _vao;
         private VAO _vao2;
@@ -32,26 +34,104 @@ namespace OctreeTest
         {
             
             stl = new STL("Models/elephant.stl", Color.Green, STLType.Binary);
-            _tree = new Octree<Voxel>(Vect3.Zero, 16.0);
 
-            var sphere = new Sphere() {Center = Vect3.Zero, Radius = 8};
 
+            var s1 = new Sphere {Center = Vect3.Zero, Radius = 4};
+            var s2 = new Sphere {Center = new Vect3(0,5,0), Radius = 4};
+            var t1 = new Octree<Voxel>(Vect3.Zero, 32.0);
+            var t2 = new Octree<Voxel>(Vect3.Zero, 32.0);
+
+            Test2(t1, node => s1.Intersects(node.AABB));
+            Test(t2, stl.Elements);
+
+            _tree = t1.Union(t2);
+
+            //_tree.Test(node => sphere.Intersects(node.AABB),maxLevel);
+            //Test2(t, node => sphere.Intersects(node.AABB));
+
+      
+            //t[0].Clear();
+            //t[0].Clear();
+            //Test(_tree,stl.Elements);
             //create from stl
-            foreach (var tri in stl.Elements)
-            {
-                Intersect(_tree, tri);
-            }
+            //foreach (var tri in stl.Elements)
+            //{
+            //    Intersect(_tree, tri);
+            //}
 
 
             VSync = VSyncMode.On;
 
-            _camera = new OrthographicCamera();
+            _camera = new Camera();
             Mouse.WheelChanged += (sender, args) =>
                 {
                     _camera.View = _camera.View * Mat4.Translate(0, 0, args.DeltaPrecise * -10.0);
                     //_camera.Eye += new Vect3(0, 0, args.DeltaPrecise * -10.0);
                     // Console.WriteLine(_camera.Eye);
                 };
+        }
+
+
+
+        void Test2(OctreeNode<Voxel> node, Func<OctreeNode<Voxel>, bool> func)
+        {
+            if (node.Level > maxLevel) return;
+
+            if (func(node))
+            {
+                if (node.Level == maxLevel)
+                {
+                    node.Fill();
+                }
+                else
+                {
+
+                    if (node.Children == null)
+                    {
+                        node.Split();
+                    }
+                    Parallel.ForEach(node.Children, child => Test2(child, func));
+                }
+            }
+
+  
+            //else
+            //{
+            //    var result = triangles.Where(t => func(node)).ToList();
+            //    if (result.Any())
+            //    {
+            //        if (node.Children == null)
+            //        {
+            //            node.Split();
+            //        }
+            //        Parallel.ForEach(node.Children, child => Test2(child, result, func));
+            //    }
+            //}
+        }
+
+        void Test(OctreeNode<Voxel> node, IEnumerable<Triangle> triangles)
+        {
+            if (node.Level > maxLevel) return;
+
+            var result = triangles.Where(t => t.Intersects(node.AABB)).ToList();
+            if (result.Any())
+            {
+                if (node.Level == maxLevel)
+                {
+                    node.Fill();
+                }
+                else
+                {
+
+                    if (node.Children == null)
+                    {
+                        node.Split();
+                    }
+                    Parallel.ForEach(node.Children, child => Test(child, result));
+                }
+
+            }
+            
         }
 
 
@@ -262,6 +342,15 @@ namespace OctreeTest
         {
             GL.Viewport(0, 0, Width, Height);
             _camera.Resize(Width, Height);
+        }
+    }
+
+
+    public class Camera:OrthographicCamera
+    {
+        public Camera()
+        {
+            Scale = 40;
         }
     }
 }
